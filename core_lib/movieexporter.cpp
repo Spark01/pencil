@@ -120,6 +120,10 @@ QString ffmpegLocation()
 #endif
 }
 
+QTextStream out(stdout);
+QTextStream err(stderr);
+
+
 MovieExporter::MovieExporter()
 {
 }
@@ -139,11 +143,9 @@ Status MovieExporter::run(const Object* obj,
     if (!QFile::exists(ffmpegPath))
     {
 #ifdef _WIN32
-        qDebug() << "Please place ffmpeg.exe in " << ffmpegPath << " directory";
-#elif __APPLE__
-        qDebug() << "Please place ffmpeg in " << ffmpegPath << " directory";
+        err << "Please place ffmpeg.exe in " << ffmpegPath << " directory";
 #else
-        qDebug() << "Please place ffmpeg in " << ffmpegPath << " directory";
+        err << "Please place ffmpeg in " << ffmpegPath << " directory";
 #endif
         return Status::ERROR_FFMPEG_NOT_FOUND;
     }
@@ -163,14 +165,14 @@ Status MovieExporter::run(const Object* obj,
     mTempWorkDir = mTempDir.path();
     progress(0.03f);
 
-    if (!desc.strFileName.endsWith("gif"))
+    if (!desc.strFileName.endsWith("gif", Qt::CaseInsensitive))
     {
         STATUS_CHECK(assembleAudio(obj, ffmpegPath, progress));
     }
     progress(0.10f);
 
     STATUS_CHECK(generateImageSequence(obj, progress));
-    progress(0.99f);
+    progress(0.90f);
 
     twoPassEncoding(ffmpegPath, desc.strFileName);
 
@@ -351,7 +353,7 @@ Status MovieExporter::generateImageSequence(
         qDebug() << "Save img to: " << strImgPath << ", Success=" << bSave;
 
         float fProgressValue = (currentFrame / (float)(frameEnd - frameStart));
-        progress(0.1f + (fProgressValue * 0.99f));
+        progress(0.1f + (fProgressValue * 0.90f));
     }
 
     return Status::OK;
@@ -458,18 +460,18 @@ Status MovieExporter::executeFFMpegCommand(QString strCmd)
     {
         if (ffmpeg.waitForFinished() == true)
         {
-            qDebug() << "stdout: " + ffmpeg.readAllStandardOutput();
-            qDebug() << "stderr: " + ffmpeg.readAllStandardError();
+            out << "stdout: " + ffmpeg.readAllStandardOutput();
+            err << "stderr: " + ffmpeg.readAllStandardError();
         }
         else
         {
-            qDebug() << "ERROR: FFmpeg did not finish executing.";
+            err << "ERROR: FFmpeg did not finish executing.";
             return Status::FAIL;
         }
     }
     else
     {
-        qDebug() << "ERROR: Could not execute FFmpeg.";
+        err << "ERROR: Could not execute FFmpeg.";
         return Status::FAIL;
     }
     return Status::OK;
