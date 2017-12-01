@@ -53,6 +53,7 @@ private:
     Status assembleAudio(const Object* obj, QString ffmpegPath, std::function<void(float)> progress);
     Status generateImageSequence(const Object* obj, std::function<void(float)> progress);
     Status combineVideoAndAudio(QString ffmpegPath, QString strOutputFile);
+    Status GenerateGif(const QString ffmpegPath, const QString strFileName);
 
     Status twoPassEncoding(QString ffmpeg, QString strOutputFile);
     Status convertVideoAgain(QString ffmpeg, QString strIn, QString strOut);

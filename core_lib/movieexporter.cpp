@@ -174,7 +174,10 @@ Status MovieExporter::run(const Object* obj,
     STATUS_CHECK(generateImageSequence(obj, progress));
     progress(0.90f);
 
-    twoPassEncoding(ffmpegPath, desc.strFileName);
+    if (desc.strFileName.endsWith("gif", Qt::CaseInsensitive))
+        GenerateGif(ffmpegPath, desc.strFileName);
+    else
+        twoPassEncoding(ffmpegPath, desc.strFileName);
 
     progress(1.0f);
 
@@ -402,7 +405,7 @@ Status MovieExporter::twoPassEncoding(QString ffmpeg, QString strOutputFile)
 
     if (strOutputFile.endsWith("gif", Qt::CaseInsensitive))
     {
-        STATUS_CHECK(convertToGif(ffmpeg, strTempVideo, strOutputFile));
+        //STATUS_CHECK(convertToGif(ffmpeg, strTempVideo, strOutputFile));
     }
     else
     {
@@ -487,4 +490,25 @@ Status MovieExporter::checkInputParameters(const ExportMovieDesc& desc)
     b &= (!desc.strCameraName.isEmpty());
 
     return b ? Status::OK : Status::INVALID_ARGUMENT;
+}
+
+Status MovieExporter::GenerateGif(const QString ffmpegPath, const QString strFileName)
+{
+    const QString strOutputFile = mDesc.strFileName;
+    const QString imgPath       = mTempWorkDir + IMAGE_FILENAME;
+    const QSize exportSize      = mDesc.exportSize;
+
+    QString strCmd = QString("\"%1\"").arg(ffmpegPath);
+    strCmd += QString(" -f image2");
+    strCmd += QString(" -framerate %1").arg(mDesc.fps);
+    strCmd += QString(" -pix_fmt yuv420p");
+    strCmd += QString(" -start_number %1").arg(mDesc.startFrame);
+    //strCmd += QString( " -r %1" ).arg( exportFps );
+    strCmd += QString(" -i \"%1\" ").arg(imgPath);
+
+    strCmd += QString(" -s %1x%2").arg(exportSize.width()).arg(exportSize.height());
+    strCmd += " -y";
+    strCmd += QString(" \"%1\"").arg(strOutputFile);
+
+    STATUS_CHECK(executeFFMpegCommand(strCmd));
 }
