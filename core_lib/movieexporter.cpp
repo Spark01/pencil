@@ -398,7 +398,7 @@ Status MovieExporter::twoPassEncoding( QString ffmpeg, QString strOutputFile )
 
 	combineVideoAndAudio( ffmpeg, strTempVideo );
 
-	if ( strOutputFile.endsWith( "gif" ) )
+    if (strOutputFile.endsWith("gif", Qt::CaseInsensitive))
 	{
 		STATUS_CHECK( convertToGif( ffmpeg, strTempVideo, strOutputFile ) );
 	}
@@ -430,7 +430,7 @@ Status MovieExporter::convertToGif( QString ffmpeg, QString strIn, QString strOu
 	QString strCmd1 = QString( "\"%1\"" ).arg( ffmpeg );
 	strCmd1 += " -y";
 	strCmd1 += QString( " -i \"%1\"" ).arg( strIn );
-	strCmd1 += " -vf scale=320:-1:flags=lanczos,palettegen";
+	strCmd1 += " -vf scale=-1:-1:flags=lanczos,palettegen";
 	strCmd1 += QString( " \"%1\"" ).arg( strGifPalette );
 
 	STATUS_CHECK( executeFFMpegCommand( strCmd1 ) );
